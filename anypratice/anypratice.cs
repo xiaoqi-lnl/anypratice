@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UObject = UnityEngine.Object;
-/*一个无关痛痒的改动*/
+
 namespace anypratice
 {
     public class anypratice : Mod, IGlobalSettings<settings>, IMenuMod

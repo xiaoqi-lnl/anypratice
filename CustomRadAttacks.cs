@@ -22,6 +22,7 @@ namespace CustomRadAttacks
         public override void Initialize(Dictionary<string, Dictionary<string, UnityEngine.GameObject>> preloadedObjects)
         {
             Log("CustomRadAttacks v" + GetVersion() + " init, enabled=" + Settings.Enabled + ", mode=" + Settings.Mode);
+            On.HutongGames.PlayMaker.Actions.SendRandomEventV3.OnEnter += ChoiceHooks.HookChoice;
         }
 
         // 配置文件放 mod 自己目录（Mods\自定义辐光招式\Settings.json），整包自包含
@@ -86,8 +87,26 @@ namespace CustomRadAttacks
                     new[] { "随机（原版）", "锁单招", "锁序列" },
                     "随机 = 完全原版；\n锁单招 = 每轮都出指定的那一招；\n锁序列 = 按 8 个槽位逐轮出",
                     value => { Settings.Mode = (ChoiceMode)value; SaveSettings(); },
-                    () => (int)Settings.Mode)
+                    () => (int)Settings.Mode),
+                new IMenuMod.MenuEntry(
+                    "P1 锁定招",
+                    AttackCatalog.NamesFor(RadPhase.P1),
+                    "只在「锁单招」模式下生效",
+                    value => { Settings.LockedA1 = AttackCatalog.NamesFor(RadPhase.P1)[value]; SaveSettings(); },
+                    () => IndexOf(AttackCatalog.NamesFor(RadPhase.P1), Settings.LockedA1)),
+                new IMenuMod.MenuEntry(
+                    "P2 锁定招",
+                    AttackCatalog.NamesFor(RadPhase.P2),
+                    "只在「锁单招」模式下生效",
+                    value => { Settings.LockedA2 = AttackCatalog.NamesFor(RadPhase.P2)[value]; SaveSettings(); },
+                    () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2))
             };
+        }
+
+        private static int IndexOf(string[] arr, string value)
+        {
+            for (int i = 0; i < arr.Length; i++) if (arr[i] == value) return i;
+            return 0;
         }
     }
 }

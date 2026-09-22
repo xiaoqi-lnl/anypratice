@@ -23,6 +23,7 @@ namespace CustomRadAttacks
         {
             Log("CustomRadAttacks v" + GetVersion() + " init, enabled=" + Settings.Enabled + ", mode=" + Settings.Mode);
             On.HutongGames.PlayMaker.Actions.SendRandomEventV3.OnEnter += ChoiceHooks.HookChoice;
+            On.HutongGames.PlayMaker.Actions.SendRandomEvent.OnEnter += ChoiceHooks.HookNailLr;
         }
 
         // 配置文件放 mod 自己目录（Mods\自定义辐光招式\Settings.json），整包自包含
@@ -100,6 +101,12 @@ namespace CustomRadAttacks
                     "只在「锁单招」模式下生效",
                     value => { Settings.LockedA2 = AttackCatalog.NamesFor(RadPhase.P2)[value]; SaveSettings(); },
                     () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2)),
+                new IMenuMod.MenuEntry(
+                    "P2 剑雨方向",
+                    new[] { "随机", "左横刺", "右横刺" },
+                    "只影响名为「横刺」的那一招（槽位写死左右的不受影响）",
+                    value => { Settings.NailSweepDir = value == 0 ? 0 : (value == 1 ? -1 : 1); SaveSettings(); },
+                    () => Settings.NailSweepDir == 0 ? 0 : (Settings.NailSweepDir < 0 ? 1 : 2)),
                 new IMenuMod.MenuEntry(
                     "走完循环",
                     new[] { "Off（走完交还原版）", "On（8 槽轮播）" },

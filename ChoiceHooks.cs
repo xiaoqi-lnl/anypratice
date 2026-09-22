@@ -11,6 +11,9 @@ namespace CustomRadAttacks
 
         private static readonly AttackSequence Sequence = new AttackSequence();
 
+        // 本轮强制招在 P2 的方向：0 不强制 / -1 左 / +1 右（供 L or R Choice 取用）
+        private static int _pendingDir;
+
         internal static void HookChoice(On.HutongGames.PlayMaker.Actions.SendRandomEventV3.orig_OnEnter orig,
                                         SendRandomEventV3 self)
         {
@@ -25,7 +28,7 @@ namespace CustomRadAttacks
             if (!TryPhase(self, out phase)) { orig(self); return; }
 
             CustomRadAttacksSettings s = CustomRadAttacks.Settings;
-            if (!s.Enabled || s.Mode == ChoiceMode.Random) { orig(self); return; }
+            if (!s.Enabled || s.Mode == ChoiceMode.Random) { _pendingDir = 0; orig(self); return; }
 
             AttackDef def;
             if (s.Mode == ChoiceMode.LockSingle)
@@ -40,7 +43,9 @@ namespace CustomRadAttacks
             }
 
             string evt = def == null ? null : def.EventFor(phase);
-            if (evt == null) { orig(self); return; }   // 空槽 / 本阶段没这招 → 交还原版
+            if (evt == null) { _pendingDir = 0; orig(self); return; }   // 空槽 / 本阶段没这招 → 交还原版
+
+            _pendingDir = def.P2Dir;
 
             // 不调 orig：原版随机被完全抑制（SendRandomEventV3 的防重复计数也随之冻住，切回随机后自行恢复）
             Send(fsm, evt);
@@ -54,6 +59,29 @@ namespace CustomRadAttacks
             if (st == "A1 Choice") { phase = RadPhase.P1; return true; }
             if (st == "A2 Choice") { phase = RadPhase.P2; return true; }
             return false;
+        }
+
+        // P2 的 L or R Choice：NAIL LR SWEEP 之后的左右二选一
+        internal static void HookNailLr(On.HutongGames.PlayMaker.Actions.SendRandomEvent.orig_OnEnter orig,
+                                        SendRandomEvent self)
+        {
+            Fsm fsm = self.Fsm;
+            if (fsm == null || fsm.GameObjectName != RadianceGoName || fsm.Name != ChoicesFsmName)
+            {
+                orig(self);
+                return;
+            }
+            string st = self.State != null ? self.State.Name : fsm.ActiveStateName;
+            if (st != "L or R Choice") { orig(self); return; }
+
+            CustomRadAttacksSettings s = CustomRadAttacks.Settings;
+            if (!s.Enabled) { orig(self); return; }
+
+            // 本轮强制招自带的方向优先；没有就用菜单设置
+            int dir = _pendingDir != 0 ? _pendingDir : s.NailSweepDir;
+            if (dir == 0) { orig(self); return; }
+
+            Send(fsm, dir < 0 ? "NAIL L SWEEP" : "NAIL R SWEEP");   // 不调 orig
         }
 
         internal static void Send(Fsm fsm, string eventName)

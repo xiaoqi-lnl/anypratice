@@ -74,7 +74,7 @@ namespace CustomRadAttacks
 
         public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? menu)
         {
-            return new List<IMenuMod.MenuEntry>
+            var list = new List<IMenuMod.MenuEntry>
             {
                 new IMenuMod.MenuEntry(
                     "启用",
@@ -99,8 +99,31 @@ namespace CustomRadAttacks
                     AttackCatalog.NamesFor(RadPhase.P2),
                     "只在「锁单招」模式下生效",
                     value => { Settings.LockedA2 = AttackCatalog.NamesFor(RadPhase.P2)[value]; SaveSettings(); },
-                    () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2))
+                    () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2)),
+                new IMenuMod.MenuEntry(
+                    "走完循环",
+                    new[] { "Off（走完交还原版）", "On（8 槽轮播）" },
+                    "只在「锁序列」模式下生效",
+                    value => { Settings.LoopSequence = value == 1; SaveSettings(); },
+                    () => Settings.LoopSequence ? 1 : 0)
             };
+            list.AddRange(SlotEntries());
+            return list;
+        }
+
+        private static IEnumerable<IMenuMod.MenuEntry> SlotEntries()
+        {
+            string[] options = AttackCatalog.SlotOptions();
+            for (int i = 0; i < AttackSequence.SlotCount; i++)
+            {
+                int slot = i;   // 闭包捕获：必须复制到局部变量
+                yield return new IMenuMod.MenuEntry(
+                    "槽位 " + (slot + 1),
+                    options,
+                    "空 = 这一槽跳过（不算一轮）",
+                    value => { Settings.Slots[slot] = options[value] == AttackCatalog.Empty ? null : options[value]; SaveSettings(); },
+                    () => IndexOf(options, Settings.Slots[slot] ?? AttackCatalog.Empty));
+            }
         }
 
         private static int IndexOf(string[] arr, string value)

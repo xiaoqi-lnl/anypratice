@@ -24,6 +24,7 @@ namespace CustomRadAttacks
             Log("CustomRadAttacks v" + GetVersion() + " init, enabled=" + Settings.Enabled + ", mode=" + Settings.Mode);
             On.HutongGames.PlayMaker.Actions.SendRandomEventV3.OnEnter += ChoiceHooks.HookChoice;
             On.HutongGames.PlayMaker.Actions.SendRandomEvent.OnEnter += ChoiceHooks.HookNailLr;
+            On.HutongGames.PlayMaker.Actions.SendRandomEvent.OnEnter += ChoiceHooks.HookTeleport;
         }
 
         // 配置文件放 mod 自己目录（Mods\自定义辐光招式\Settings.json），整包自包含
@@ -115,7 +116,27 @@ namespace CustomRadAttacks
                     () => Settings.LoopSequence ? 1 : 0)
             };
             list.AddRange(SlotEntries());
+            list.Add(new IMenuMod.MenuEntry(
+                "P2 瞬移允许重复",
+                new[] { "Off", "On" },
+                "On = 去掉原版「不连续去同一个点」的限制",
+                value => { Settings.TeleportAllowRepeat = value == 1; SaveSettings(); },
+                () => Settings.TeleportAllowRepeat ? 1 : 0));
+            list.Add(new IMenuMod.MenuEntry(
+                "P2 瞬移锁死点",
+                BuildTeleportOptions(),
+                "选一个点则辐光每次瞬移都去那里（与「允许重复」叠加，都关 = 原版）",
+                value => { Settings.LockedTelePos = value; SaveSettings(); },
+                () => Settings.LockedTelePos < 0 || Settings.LockedTelePos > 10 ? 0 : Settings.LockedTelePos));
             return list;
+        }
+
+        private static string[] BuildTeleportOptions()
+        {
+            var opts = new string[11];
+            opts[0] = "不锁（原版随机）";
+            for (int i = 1; i <= 10; i++) opts[i] = "第 " + i + " 点";
+            return opts;
         }
 
         private static IEnumerable<IMenuMod.MenuEntry> SlotEntries()

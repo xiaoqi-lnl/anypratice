@@ -8,6 +8,7 @@ namespace CustomRadAttacks
         // 钩子是全局的，靠 FSM 身份过滤，只处理辐光那一个（design §5.3）
         internal const string RadianceGoName = "Absolute Radiance";
         internal const string ChoicesFsmName = "Attack Choices";
+        internal const string ControlFsmName = "Control";
 
         private static readonly AttackSequence Sequence = new AttackSequence();
 
@@ -82,6 +83,46 @@ namespace CustomRadAttacks
             if (dir == 0) { orig(self); return; }
 
             Send(fsm, dir < 0 ? "NAIL L SWEEP" : "NAIL R SWEEP");   // 不调 orig
+        }
+
+        // P2 瞬移点位：Control FSM 的 A2 Tele Choice
+        internal static void HookTeleport(On.HutongGames.PlayMaker.Actions.SendRandomEvent.orig_OnEnter orig,
+                                         SendRandomEvent self)
+        {
+            Fsm fsm = self.Fsm;
+            if (fsm == null || fsm.GameObjectName != RadianceGoName || fsm.Name != ControlFsmName)
+            {
+                orig(self);
+                return;
+            }
+            string st = self.State != null ? self.State.Name : fsm.ActiveStateName;
+            if (st != "A2 Tele Choice") { orig(self); return; }
+
+            CustomRadAttacksSettings s = CustomRadAttacks.Settings;
+            if (!s.Enabled) { orig(self); return; }
+            if (!s.TeleportAllowRepeat && s.LockedTelePos == 0) { orig(self); return; }   // 两个都关 = 原版
+
+            // Tele N 里是 IntCompare(Last Tele Pos == N) → NEXT 的防重复链；
+            // 清零后整条链落空：既实现「允许重复」，也是「锁死第 N 点」的前提（design §3.4）
+            SetLastTelePos(fsm, 0);
+
+            if (s.LockedTelePos > 0)
+            {
+                Send(fsm, s.LockedTelePos.ToString());   // 事件名就是 "1".."10"
+                return;
+            }
+            orig(self);   // 允许重复：仍按原版权重随机挑点，只是防重复链已清零
+        }
+
+        private static void SetLastTelePos(Fsm fsm, int value)
+        {
+            FsmInt v = fsm.GetFsmInt("Last Tele Pos");
+            if (v == null)
+            {
+                CustomRadAttacks.Instance.LogError("找不到 Control FSM 的 Last Tele Pos");
+                return;
+            }
+            v.Value = value;
         }
 
         internal static void Send(Fsm fsm, string eventName)

@@ -103,12 +103,6 @@ namespace CustomRadAttacks
                     value => { Settings.LockedA2 = AttackCatalog.NamesFor(RadPhase.P2)[value]; SaveSettings(); },
                     () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2)),
                 new IMenuMod.MenuEntry(
-                    "P2 横刺方向",
-                    new[] { "随机", "左横刺", "右横刺" },
-                    "只在 P2 出「横刺」时生效；「左横刺」「右横刺」自带方向，不受影响",
-                    value => { Settings.NailSweepDir = value == 0 ? 0 : (value == 1 ? -1 : 1); SaveSettings(); },
-                    () => Settings.NailSweepDir == 0 ? 0 : (Settings.NailSweepDir < 0 ? 1 : 2)),
-                new IMenuMod.MenuEntry(
                     "走完循环",
                     new[] { "Off（走完交还原版）", "On（8 槽轮播）" },
                     "只在「锁序列」模式下生效",

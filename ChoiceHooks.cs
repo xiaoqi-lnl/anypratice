@@ -78,8 +78,9 @@ namespace CustomRadAttacks
             CustomRadAttacksSettings s = CustomRadAttacks.Settings;
             if (!s.Enabled) { orig(self); return; }
 
-            // 本轮强制招自带的方向优先；没有就用菜单设置
-            int dir = _pendingDir != 0 ? _pendingDir : s.NailSweepDir;
+            // 方向只由本轮选中的招式名决定（左横刺 = -1 / 右横刺 = +1）；
+            // 「横刺」不带方向 → 交还原版左右随机（design §8.1）
+            int dir = _pendingDir;
             if (dir == 0) { orig(self); return; }
 
             Send(fsm, dir < 0 ? "NAIL L SWEEP" : "NAIL R SWEEP");   // 不调 orig

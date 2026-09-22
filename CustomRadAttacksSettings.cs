@@ -20,9 +20,6 @@ namespace CustomRadAttacks
         public string[] Slots = new string[AttackSequence.SlotCount];
         public bool LoopSequence = true;
 
-        // P2 横刺方向：0 = 随机, -1 = 左, +1 = 右（只影响"横刺"这个名字，见 design §8.1）
-        public int NailSweepDir = 0;
-
         // P2 瞬移
         public bool TeleportAllowRepeat = false;
         public int LockedTelePos = 0;   // 0 = 不锁；1~10 = 锁死第 N 点

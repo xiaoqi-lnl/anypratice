@@ -103,9 +103,9 @@ namespace CustomRadAttacks
                     value => { Settings.LockedA2 = AttackCatalog.NamesFor(RadPhase.P2)[value]; SaveSettings(); },
                     () => IndexOf(AttackCatalog.NamesFor(RadPhase.P2), Settings.LockedA2)),
                 new IMenuMod.MenuEntry(
-                    "P2 剑雨方向",
+                    "P2 横刺方向",
                     new[] { "随机", "左横刺", "右横刺" },
-                    "只影响名为「横刺」的那一招（槽位写死左右的不受影响）",
+                    "只在 P2 出「横刺」时生效；「左横刺」「右横刺」自带方向，不受影响",
                     value => { Settings.NailSweepDir = value == 0 ? 0 : (value == 1 ? -1 : 1); SaveSettings(); },
                     () => Settings.NailSweepDir == 0 ? 0 : (Settings.NailSweepDir < 0 ? 1 : 2)),
                 new IMenuMod.MenuEntry(

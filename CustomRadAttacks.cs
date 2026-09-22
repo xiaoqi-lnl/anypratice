@@ -50,7 +50,7 @@ namespace CustomRadAttacks
                 Instance.LogError("Settings load failed: " + ex.Message);
                 Settings = new CustomRadAttacksSettings();
             }
-            if (Settings.Slots == null) Settings.Slots = new string[8];
+            if (Settings.Slots == null) Settings.Slots = new string[AttackSequence.SlotCount];
         }
 
         internal static void SaveSettings()

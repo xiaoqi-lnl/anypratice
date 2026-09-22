@@ -17,8 +17,7 @@ namespace CustomRadAttacks
         public string LockedA2 = "脸刺";
 
         // 锁序列：8 个槽位存招式中文名，null / 空串 = 空槽（跳过、不算一轮）
-        // Task 3 引入 AttackSequence.SlotCount 后改回 new string[AttackSequence.SlotCount]
-        public string[] Slots = new string[8];
+        public string[] Slots = new string[AttackSequence.SlotCount];
         public bool LoopSequence = true;
 
         // P2 横刺方向：0 = 随机, -1 = 左, +1 = 右（只影响"横刺"这个名字，见 design §8.1）

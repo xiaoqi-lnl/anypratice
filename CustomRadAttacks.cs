@@ -21,10 +21,60 @@ namespace CustomRadAttacks
 
         public override void Initialize(Dictionary<string, Dictionary<string, UnityEngine.GameObject>> preloadedObjects)
         {
-            Log("CustomRadAttacks v" + GetVersion() + " init, enabled=" + Settings.Enabled + ", mode=" + Settings.Mode);
+            CheckConflicts();
+            Log("CustomRadAttacks v" + GetVersion() + " init, enabled=" + Settings.Enabled + ", mode=" + Settings.Mode
+                + ", conflicted=" + Conflicted);
             On.HutongGames.PlayMaker.Actions.SendRandomEventV3.OnEnter += ChoiceHooks.HookChoice;
             On.HutongGames.PlayMaker.Actions.SendRandomEvent.OnEnter += ChoiceHooks.HookNailLr;
             On.HutongGames.PlayMaker.Actions.SendRandomEvent.OnEnter += ChoiceHooks.HookTeleport;
+        }
+
+        // 互斥判据（design §7.1）不是"也碰了辐光 FSM"，而是"是否争夺同一个决策点"——
+        // 即是否改写 SendRandomEventV3 的权重/事件表。本 mod 只发事件，从不读转移表与动作索引，
+        // 所以只改转移目标、增删动作、改字段值的 mod 都不冲突。
+        internal static bool Conflicted;
+
+        // 2026-09-22：三个候选全部排除，名单刻意留空，不是漏填。
+        //   天国余晖 —— 源码核对 + 同日共存实测，无一项偏差
+        //   OrbRadiance —— 判定不冲突
+        //   AbsRadConfigurableAttacks —— 用户自行处理，本 mod 不介入
+        // 机制保留为扩展点：将来真出现改写权重的 mod，把别名填进来即可。
+        private static readonly string[][] ConflictingMods =
+        {
+        };
+
+        private void CheckConflicts()
+        {
+            try
+            {
+                // onlyEnabled: 装了但关着的 mod 不算冲突 —— 那种情况它不会碰 FSM
+                foreach (IMod mod in ModHooks.GetAllMods(true, false))
+                {
+                    string name = mod.GetName();
+                    string asm = mod.GetType().Assembly.GetName().Name;
+                    for (int i = 0; i < ConflictingMods.Length; i++)
+                    {
+                        if (!Matches(ConflictingMods[i], name) && !Matches(ConflictingMods[i], asm)) continue;
+                        Conflicted = true;
+                        Settings.Enabled = false;
+                        SaveSettings();
+                        LogError("检测到冲突 mod「" + name + "」——已自动禁用自定义辐光招式。"
+                                 + "两者都接管辐光的招式选择，同时开启行为不可预期。请只留一个。");
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError("冲突检测失败: " + ex.Message);
+            }
+        }
+
+        private static bool Matches(string[] aliases, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            for (int i = 0; i < aliases.Length; i++) if (aliases[i] == value) return true;
+            return false;
         }
 
         // 配置文件放 mod 自己目录（Mods\自定义辐光招式\Settings.json），整包自包含
@@ -81,7 +131,9 @@ namespace CustomRadAttacks
                 new IMenuMod.MenuEntry(
                     "启用",
                     new[] { "Off", "On" },
-                    "总开关：关掉时全部交还原版辐光",
+                    Conflicted
+                        ? "⚠ 检测到抢占招式选择的 mod，已自动禁用（名字见 ModLog）"
+                        : "总开关：关掉时全部交还原版辐光",
                     value => { Settings.Enabled = value == 1; SaveSettings(); },
                     () => Settings.Enabled ? 1 : 0),
                 new IMenuMod.MenuEntry(

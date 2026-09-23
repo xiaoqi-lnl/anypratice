@@ -19,5 +19,15 @@ namespace anypratice
         public bool indicator=true;
         public int cycle=0;
        //public bool superdash=true;
+
+        // ---- 辐光招式控制 ----
+        public bool crOn = true;
+        public ChoiceMode crMode = ChoiceMode.Random;
+        public string crA1 = "脸刺";
+        public string crA2 = "脸刺";
+        public string[] crSlots = new string[AttackSequence.SlotCount];
+        public bool crLoop = true;
+        public bool crTeleRepeat = false;
+        public int crTelePos = 0;
     }
 }

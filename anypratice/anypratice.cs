@@ -36,6 +36,7 @@ namespace anypratice
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
         {
             On.PlayMakerFSM.OnEnable += fsm_on;
+            ChoiceHooks.Install();
             ModHooks.HeroUpdateHook += baldurfix;
             ModHooks.AfterPlayerDeadHook += carefreeset1;
             ModHooks.CharmUpdateHook += carefreeset;
@@ -205,7 +206,13 @@ namespace anypratice
             orig(self);
             
         }
-        public void OnLoadGlobal(settings settings) => _set = settings;
+        public void OnLoadGlobal(settings settings)
+        {
+            _set = settings;
+            // 老配置文件里没有 crSlots，反序列化可能是 null
+            if (_set.crSlots == null) _set.crSlots = new string[AttackSequence.SlotCount];
+        }
+
         public settings OnSaveGlobal() => _set;
 
         public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? toggleButtonEntry)
@@ -368,7 +375,115 @@ namespace anypratice
                  Loader = () => _set.superdash ? 0 : 1
              }
          );*/
+
+            // ---- 辐光招式控制 ----
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·启用",
+                Description = "总开关：关掉时全部交还原版辐光",
+                Values = new string[]
+                {
+                    Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                },
+                Saver = i => _set.crOn = i == 0,
+                Loader = () => _set.crOn ? 0 : 1
+            }
+            );
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·模式",
+                Description = "随机 = 完全原版；锁单招 = 每轮都出指定的那一招；锁序列 = 按 8 个槽位逐轮出",
+                Values = new string[] { "随机（原版）", "锁单招", "锁序列" },
+                Saver = i => _set.crMode = (ChoiceMode)i,
+                Loader = () => (int)_set.crMode
+            }
+            );
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·P1锁定招",
+                Description = "只在「锁单招」模式下生效",
+                Values = AttackCatalog.NamesFor(RadPhase.P1),
+                Saver = i => _set.crA1 = AttackCatalog.NamesFor(RadPhase.P1)[i],
+                Loader = () => AttackCatalog.IndexOf(AttackCatalog.NamesFor(RadPhase.P1), _set.crA1)
+            }
+            );
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·P2锁定招",
+                Description = "只在「锁单招」模式下生效",
+                Values = AttackCatalog.NamesFor(RadPhase.P2),
+                Saver = i => _set.crA2 = AttackCatalog.NamesFor(RadPhase.P2)[i],
+                Loader = () => AttackCatalog.IndexOf(AttackCatalog.NamesFor(RadPhase.P2), _set.crA2)
+            }
+            );
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·走完循环",
+                Description = "只在「锁序列」模式下生效：8 槽走完后是轮播还是交还原版",
+                Values = new string[] { "关闭（交还原版）", "开启（8 槽轮播）" },
+                Saver = i => _set.crLoop = i == 1,
+                Loader = () => _set.crLoop ? 1 : 0
+            }
+            );
+
+            string[] slotOptions = AttackCatalog.SlotOptions();
+            for (int i = 0; i < AttackSequence.SlotCount; i++)
+            {
+                int slot = i;   // 闭包捕获：必须复制到局部变量
+                menus.Add(
+                new()
+                {
+                    Name = "自定义招式·槽位 " + (slot + 1),
+                    Description = "空 = 这一槽跳过（不算一轮）",
+                    Values = slotOptions,
+                    Saver = v => _set.crSlots[slot] = slotOptions[v] == AttackCatalog.Empty ? null : slotOptions[v],
+                    Loader = () => AttackCatalog.IndexOf(slotOptions, _set.crSlots[slot] ?? AttackCatalog.Empty)
+                }
+                );
+            }
+
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·P2瞬移允许重复",
+                Description = "开启 = 允许连续去同一个点；关闭 = 原版防重复限制",
+                Values = new string[]
+                {
+                    Language.Language.Get("MOH_ON", "MainMenu"),
+                    Language.Language.Get("MOH_OFF", "MainMenu"),
+                },
+                Saver = i => _set.crTeleRepeat = i == 0,
+                Loader = () => _set.crTeleRepeat ? 0 : 1
+            }
+            );
+
+            string[] teleOptions = TeleOptions();
+            menus.Add(
+            new()
+            {
+                Name = "自定义招式·P2瞬移锁死点",
+                Description = "选一个点 = 每次瞬移都去该点；与「允许重复」可叠加；都关 = 原版随机",
+                Values = teleOptions,
+                Saver = i => _set.crTelePos = i,
+                Loader = () => _set.crTelePos < 0 || _set.crTelePos > 10 ? 0 : _set.crTelePos
+            }
+            );
+
             return menus;
+        }
+
+        private static string[] TeleOptions()
+        {
+            string[] opts = new string[11];
+            opts[0] = "不锁（原版随机）";
+            for (int i = 1; i <= 10; i++) opts[i] = "第 " + i + " 点";
+            return opts;
         }
 
         void FindChild(GameObject child)

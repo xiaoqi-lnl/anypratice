@@ -6,11 +6,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UObject = UnityEngine.Object;
+using BM = Satchel.BetterMenus;
 
 namespace anypratice
 {
-    public class anypratice : Mod, IGlobalSettings<settings>, IMenuMod
+    public class anypratice : Mod, IGlobalSettings<settings>, ICustomMenuMod
     {
         internal static anypratice Instance;
         private bool test = true;
@@ -215,267 +217,99 @@ namespace anypratice
 
         public settings OnSaveGlobal() => _set;
 
-        public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? toggleButtonEntry)
-        {
-            List<IMenuMod.MenuEntry> menus = new();
-            menus.Add(
-            new()
-            {
-                Name = "总开关",
-                Description = "总开关开启时，其他才有效",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.on = i == 0,
-                Loader = () => _set.on ? 0 : 1
-            }
-            );
-            menus.Add(
-            new()
-            {
-                Name = "巴德尔修复",
-                Description = "按下BackSpace键来修复巴德尔之壳",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.baldurfix = i == 0,
-                Loader = () => _set.baldurfix ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "激光锁头",
-                Description = "P3的激光不再有偏移角度",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.beamlock = i == 0,
-                Loader = () => _set.beamlock ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "移除虚空",
-                Description = "P2虚空不再上升",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.abyssremove = i == 0,
-                Loader = () => _set.abyssremove ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "光球范围显示",
-                Description = "实时显示光球可能出现的范围",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.orbindicator = i == 0,
-                Loader = () => _set.orbindicator ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "重置无忧概率",
-                Description = "每次切换场景都会重置无忧概率",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.carereset = i == 0,
-                Loader = () => _set.carereset ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "两槽快劈",
-                Description = "any挑战中唯一允许的旧护符槽位",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.legacycost = i == 0,
-                Loader = () => _set.legacycost ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "辐光皮肤",
-                Description = "皮肤尚无",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.skin = i == 0,
-                Loader = () => _set.skin ? 0 : 1
-            }
-        );
-            menus.Add(
-            new()
-            {
-                Name = "无敌显示",
-                Description = "处于无敌状态时显示绿圈",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.indicator = i == 0,
-                Loader = () => _set.indicator ? 0 : 1
-            }
-        );
-            /*menus.Add(
-           new()
-           {
-               Name = "阶段选择",
-               Description = "辐光初始将有该阶段血量",
-               Values = new string[]
-               {
-                    //Language.Language.Get("MOH_ON", "MainMenu"),
-                    //Language.Language.Get("MOH_OFF", "MainMenu"),
-                    "关闭",
-                    "P2血量",
-                    "P3血量"
-               },
-               Saver = i => _set.cycle= i ,
-               Loader = () => _set.cycle
-           }
-       );*/
-            /* menus.Add(
-             new()
-             {
-                 Name = "超冲停滞",
-                 Description = "帅",
-                 Values = new string[]
-                 {
-                     Language.Language.Get("MOH_ON", "MainMenu"),
-                     Language.Language.Get("MOH_OFF", "MainMenu"),
-                 },
-                 Saver = i => _set.superdash = i == 0,
-                 Loader = () => _set.superdash ? 0 : 1
-             }
-         );*/
+        // ===== 菜单：主菜单保留原有 9 项，自定义招式收进二级页 =====
 
-            // ---- 辐光招式控制 ----
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·启用",
-                Description = "总开关：关掉时全部交还原版辐光",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.crOn = i == 0,
-                Loader = () => _set.crOn ? 0 : 1
-            }
-            );
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·模式",
-                Description = "随机 = 完全原版；锁单招 = 每轮都出指定的那一招；锁序列 = 按 8 个槽位逐轮出",
-                Values = new string[] { "随机（原版）", "锁单招", "锁序列" },
-                Saver = i => _set.crMode = (ChoiceMode)i,
-                Loader = () => (int)_set.crMode
-            }
-            );
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·P1锁定招",
-                Description = "只在「锁单招」模式下生效",
-                Values = AttackCatalog.NamesFor(RadPhase.P1),
-                Saver = i => _set.crA1 = AttackCatalog.NamesFor(RadPhase.P1)[i],
-                Loader = () => AttackCatalog.IndexOf(AttackCatalog.NamesFor(RadPhase.P1), _set.crA1)
-            }
-            );
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·P2锁定招",
-                Description = "只在「锁单招」模式下生效",
-                Values = AttackCatalog.NamesFor(RadPhase.P2),
-                Saver = i => _set.crA2 = AttackCatalog.NamesFor(RadPhase.P2)[i],
-                Loader = () => AttackCatalog.IndexOf(AttackCatalog.NamesFor(RadPhase.P2), _set.crA2)
-            }
-            );
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·走完循环",
-                Description = "只在「锁序列」模式下生效：8 槽走完后是轮播还是交还原版",
-                Values = new string[] { "关闭（交还原版）", "开启（8 槽轮播）" },
-                Saver = i => _set.crLoop = i == 1,
-                Loader = () => _set.crLoop ? 1 : 0
-            }
-            );
+        private BM.Menu _mainMenu;
+        private BM.Menu _attackMenu;
+        private MenuScreen _mainScreen;
+        private MenuScreen _attackScreen;
+
+        // Satchel 的选项不会自己落盘（Mod.SaveGlobalSettings 是 protected），改完手动存一次
+        public void Persist() => SaveGlobalSettings();
+
+        public MenuScreen GetMenuScreen(MenuScreen modListMenu, ModToggleDelegates? toggleDelegates)
+        {
+            _mainMenu ??= new BM.Menu(GetName(), MainElements());
+            _mainScreen = BM.Blueprints.GetCachedMenuScreen(_mainMenu, modListMenu);
+            _attackMenu ??= new BM.Menu("自定义招式", AttackElements());
+            _attackScreen = BM.Blueprints.GetCachedMenuScreen(_attackMenu, _mainScreen);
+            return _mainScreen;
+        }
+
+        private BM.Element[] MainElements()
+        {
+            List<BM.Element> list = new List<BM.Element>();
+
+            list.Add(Bool("总开关", "总开关开启时，其他才有效", v => _set.on = v, () => _set.on, "on"));
+            list.Add(Bool("巴德尔修复", "按下BackSpace键来修复巴德尔之壳", v => _set.baldurfix = v, () => _set.baldurfix, "baldurfix"));
+            list.Add(Bool("激光锁头", "P3的激光不再有偏移角度", v => _set.beamlock = v, () => _set.beamlock, "beamlock"));
+            list.Add(Bool("移除虚空", "P2虚空不再上升", v => _set.abyssremove = v, () => _set.abyssremove, "abyssremove"));
+            list.Add(Bool("光球范围显示", "实时显示光球可能出现的范围", v => _set.orbindicator = v, () => _set.orbindicator, "orbindicator"));
+            list.Add(Bool("重置无忧概率", "每次切换场景都会重置无忧概率", v => _set.carereset = v, () => _set.carereset, "carereset"));
+            list.Add(Bool("两槽快劈", "any挑战中唯一允许的旧护符槽位", v => _set.legacycost = v, () => _set.legacycost, "legacycost"));
+            list.Add(Bool("辐光皮肤", "皮肤尚无", v => _set.skin = v, () => _set.skin, "skin"));
+            list.Add(Bool("无敌显示", "处于无敌状态时显示绿圈", v => _set.indicator = v, () => _set.indicator, "indicator"));
+
+            list.Add(BM.Blueprints.NavigateToMenu("自定义招式", "辐光招式控制：锁单招 / 锁序列 / P2瞬移点位", () => _attackScreen));
+
+            return list.ToArray();
+        }
+
+        private BM.Element[] AttackElements()
+        {
+            List<BM.Element> list = new List<BM.Element>();
+
+            list.Add(Bool("启用", "总开关：关掉时全部交还原版辐光", v => _set.crOn = v, () => _set.crOn, "cr_on"));
+
+            list.Add(Opt("模式", "随机 = 完全原版；锁单招 = 每轮都出指定的那一招；锁序列 = 按 8 个槽位逐轮出",
+                new string[] { "随机（原版）", "锁单招", "锁序列" },
+                i => _set.crMode = (ChoiceMode)i, () => (int)_set.crMode, "cr_mode"));
+
+            string[] p1 = AttackCatalog.NamesFor(RadPhase.P1);
+            string[] p2 = AttackCatalog.NamesFor(RadPhase.P2);
+
+            list.Add(Opt("P1锁定招", "只在「锁单招」模式下生效", p1,
+                i => _set.crA1 = p1[i], () => AttackCatalog.IndexOf(p1, _set.crA1), "cr_a1"));
+
+            list.Add(Opt("P2锁定招", "只在「锁单招」模式下生效", p2,
+                i => _set.crA2 = p2[i], () => AttackCatalog.IndexOf(p2, _set.crA2), "cr_a2"));
+
+            list.Add(Opt("走完循环", "只在「锁序列」模式下生效：8 槽走完后是轮播还是交还原版",
+                new string[] { "关闭（交还原版）", "开启（8 槽轮播）" },
+                i => _set.crLoop = i == 1, () => _set.crLoop ? 1 : 0, "cr_loop"));
 
             string[] slotOptions = AttackCatalog.SlotOptions();
             for (int i = 0; i < AttackSequence.SlotCount; i++)
             {
                 int slot = i;   // 闭包捕获：必须复制到局部变量
-                menus.Add(
-                new()
-                {
-                    Name = "自定义招式·槽位 " + (slot + 1),
-                    Description = "空 = 这一槽跳过（不算一轮）",
-                    Values = slotOptions,
-                    Saver = v => _set.crSlots[slot] = slotOptions[v] == AttackCatalog.Empty ? null : slotOptions[v],
-                    Loader = () => AttackCatalog.IndexOf(slotOptions, _set.crSlots[slot] ?? AttackCatalog.Empty)
-                }
-                );
+                list.Add(Opt("槽位 " + (slot + 1), "空 = 这一槽跳过（不算一轮）", slotOptions,
+                    v => _set.crSlots[slot] = slotOptions[v] == AttackCatalog.Empty ? null : slotOptions[v],
+                    () => AttackCatalog.IndexOf(slotOptions, _set.crSlots[slot] ?? AttackCatalog.Empty),
+                    "cr_slot" + slot));
             }
 
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·P2瞬移允许重复",
-                Description = "开启 = 允许连续去同一个点；关闭 = 原版防重复限制",
-                Values = new string[]
-                {
-                    Language.Language.Get("MOH_ON", "MainMenu"),
-                    Language.Language.Get("MOH_OFF", "MainMenu"),
-                },
-                Saver = i => _set.crTeleRepeat = i == 0,
-                Loader = () => _set.crTeleRepeat ? 0 : 1
-            }
-            );
+            list.Add(Bool("P2瞬移允许重复", "开启 = 允许连续去同一个点；关闭 = 原版防重复限制",
+                v => _set.crTeleRepeat = v, () => _set.crTeleRepeat, "cr_tele_repeat"));
 
             string[] teleOptions = TeleOptions();
-            menus.Add(
-            new()
-            {
-                Name = "自定义招式·P2瞬移锁死点",
-                Description = "选一个点 = 每次瞬移都去该点；与「允许重复」可叠加；都关 = 原版随机",
-                Values = teleOptions,
-                Saver = i => _set.crTelePos = i,
-                Loader = () => _set.crTelePos < 0 || _set.crTelePos > 10 ? 0 : _set.crTelePos
-            }
-            );
+            list.Add(Opt("P2瞬移锁死点", "选一个点 = 每次瞬移都去该点；与「允许重复」可叠加；都关 = 原版随机",
+                teleOptions,
+                i => _set.crTelePos = i,
+                () => _set.crTelePos < 0 || _set.crTelePos > 10 ? 0 : _set.crTelePos,
+                "cr_tele_pos"));
 
-            return menus;
+            return list.ToArray();
+        }
+
+        private BM.HorizontalOption Bool(string name, string description, Action<bool> set, Func<bool> get, string id)
+        {
+            return BM.Blueprints.HorizontalBoolOption(name, description, v => { set(v); Persist(); }, get,
+                Language.Language.Get("MOH_ON", "MainMenu"), Language.Language.Get("MOH_OFF", "MainMenu"), id);
+        }
+
+        private BM.HorizontalOption Opt(string name, string description, string[] values, Action<int> set, Func<int> get, string id)
+        {
+            return new BM.HorizontalOption(name, description, values, v => { set(v); Persist(); }, get, id);
         }
 
         private static string[] TeleOptions()

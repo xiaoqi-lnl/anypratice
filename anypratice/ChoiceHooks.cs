@@ -36,10 +36,11 @@ namespace anypratice
             if (!TryPhase(self, out phase)) { orig(self); return; }
 
             settings s = Set;
-            if (!s.crOn || s.crMode == ChoiceMode.Random) { _pendingDir = 0; orig(self); return; }
+            ChoiceMode mode = phase == RadPhase.P1 ? s.crModeA1 : s.crModeA2;
+            if (!s.crOn || mode == ChoiceMode.Random) { _pendingDir = 0; orig(self); return; }
 
             AttackDef def;
-            if (s.crMode == ChoiceMode.LockSingle)
+            if (mode == ChoiceMode.LockSingle)
             {
                 def = AttackCatalog.Find(phase == RadPhase.P1 ? s.crA1 : s.crA2);
             }

@@ -259,22 +259,26 @@ namespace anypratice
         {
             List<BM.Element> list = new List<BM.Element>();
 
-            list.Add(Bool("启用", "总开关：关掉时全部交还原版辐光", v => _set.crOn = v, () => _set.crOn, "cr_on"));
+            list.Add(Bool("启用", "", v => _set.crOn = v, () => _set.crOn, "cr_on"));
 
-            list.Add(Opt("模式", "随机 = 完全原版；锁单招 = 每轮都出指定的那一招；锁序列 = 按 8 个槽位逐轮出",
+            list.Add(Opt("P1 配置", "",
                 new string[] { "随机（原版）", "锁单招", "锁序列" },
-                i => _set.crMode = (ChoiceMode)i, () => (int)_set.crMode, "cr_mode"));
+                i => _set.crModeA1 = (ChoiceMode)i, () => (int)_set.crModeA1, "cr_mode_a1"));
+
+            list.Add(Opt("P2 配置", "",
+                new string[] { "随机（原版）", "锁单招", "锁序列" },
+                i => _set.crModeA2 = (ChoiceMode)i, () => (int)_set.crModeA2, "cr_mode_a2"));
 
             string[] p1 = AttackCatalog.NamesFor(RadPhase.P1);
             string[] p2 = AttackCatalog.NamesFor(RadPhase.P2);
 
-            list.Add(Opt("P1锁定招", "只在「锁单招」模式下生效", p1,
+            list.Add(Opt("P1锁定招", "仅 P1 配置=锁单招时生效", p1,
                 i => _set.crA1 = p1[i], () => AttackCatalog.IndexOf(p1, _set.crA1), "cr_a1"));
 
-            list.Add(Opt("P2锁定招", "只在「锁单招」模式下生效", p2,
+            list.Add(Opt("P2锁定招", "仅 P2 配置=锁单招时生效", p2,
                 i => _set.crA2 = p2[i], () => AttackCatalog.IndexOf(p2, _set.crA2), "cr_a2"));
 
-            list.Add(Opt("走完循环", "只在「锁序列」模式下生效：8 槽走完后是轮播还是交还原版",
+            list.Add(Opt("轮播序列", "",
                 new string[] { "关闭（交还原版）", "开启（8 槽轮播）" },
                 i => _set.crLoop = i == 1, () => _set.crLoop ? 1 : 0, "cr_loop"));
 
@@ -282,17 +286,17 @@ namespace anypratice
             for (int i = 0; i < AttackSequence.SlotCount; i++)
             {
                 int slot = i;   // 闭包捕获：必须复制到局部变量
-                list.Add(Opt("槽位 " + (slot + 1), "空 = 这一槽跳过（不算一轮）", slotOptions,
+                list.Add(Opt("槽位 " + (slot + 1), "留空则跳到下个槽位", slotOptions,
                     v => _set.crSlots[slot] = slotOptions[v] == AttackCatalog.Empty ? null : slotOptions[v],
                     () => AttackCatalog.IndexOf(slotOptions, _set.crSlots[slot] ?? AttackCatalog.Empty),
                     "cr_slot" + slot));
             }
 
-            list.Add(Bool("P2瞬移允许重复", "开启 = 允许连续去同一个点；关闭 = 原版防重复限制",
+            list.Add(Bool("允许相同瞬移点", "",
                 v => _set.crTeleRepeat = v, () => _set.crTeleRepeat, "cr_tele_repeat"));
 
             string[] teleOptions = TeleOptions();
-            list.Add(Opt("P2瞬移锁死点", "选一个点 = 每次瞬移都去该点；与「允许重复」可叠加；都关 = 原版随机",
+            list.Add(Opt("指定 P2 瞬移点位", "",
                 teleOptions,
                 i => _set.crTelePos = i,
                 () => _set.crTelePos < 0 || _set.crTelePos > 10 ? 0 : _set.crTelePos,

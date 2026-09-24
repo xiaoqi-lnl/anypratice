@@ -22,7 +22,9 @@ namespace anypratice
 
         // ---- 辐光招式控制 ----
         public bool crOn = true;
-        public ChoiceMode crMode = ChoiceMode.Random;
+        // 模式：P1 / P2 各自独立选（随机 / 锁单招 / 锁序列）
+        public ChoiceMode crModeA1 = ChoiceMode.Random;
+        public ChoiceMode crModeA2 = ChoiceMode.Random;
         public string crA1 = "脸刺";
         public string crA2 = "脸刺";
         public string[] crSlots = new string[AttackSequence.SlotCount];
